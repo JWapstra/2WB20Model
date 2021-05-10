@@ -143,8 +143,22 @@ def multi_sim(nr_runs, t_schedule: int, t_max: int,
     return ci_wait, ci_total
 
 
-a = multi_sim(100, 108, 200, 0.25, 0.4, 0.3, name_states)
-print(a)
+def check_prop(nr_steps, step_size, states):
+    if (nr_steps-1)*step_size <= 1:
+        for i in range(nr_steps):
+            for j in range(nr_steps):
+                for k in range(nr_steps):
+                    a = multi_sim(10, 108, 200, step_size*i, step_size*j, step_size*k, states)
+                    print((step_size*i, step_size*j, step_size*k), a)
+    else:
+        print("Invalid stepsize and/or number of steps")
+
+
+check_prop(6,0.2,name_states)
+
+# multi_sim(100, 108, 200, 0.25, 0.4, 0.3, name_states)
+# print(a)
+
 
 
 
