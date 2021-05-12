@@ -1,9 +1,12 @@
+from collections import deque
 from random import random
 
 # A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
+from numpy import mean
+
 
 class BasicModel:
-    def __init__(self):
+    def __init__(self, prob_to_doc):
         self.state = [0 for i in range(0,22)]
         self.NOPTS = 2 # number of optomologists
 
@@ -11,6 +14,7 @@ class BasicModel:
         self.prob_1 = 0.3  #probability that 1 person enters building
         self.prob_2 = 0.1  #probability that 2 people enters building
         self.prob_emergency = 0.02 #1/50
+        self.prob_to_doc = prob_to_doc
 
         self.prob_skipsA2 = 0.5
         self.prob_skipsA4 = 0.5
@@ -75,8 +79,13 @@ class BasicModel:
         # Assume that the waiting room and the optomologists have already been moved. 
         # queue starts moving at the front (aka A5 moves first)
         
-        # A5 moves to W1 
-        li[6] += li[5]
+        # A5 moves to W1 or H
+        for _ in range(li[5]):
+            to_doc = random() < self.prob_to_doc
+            if to_doc:
+                li[6] += 1
+            else:
+                li[-1] += 1
 
         # A3 or A4 moves to A5
         li[5] = li[4]
@@ -124,8 +133,15 @@ class BasicModel:
         self.visitor()
         print(self.state)
 
+    def run(self, t_max):
+        nr_waiting_patients = deque()
+        for t in range(t_max):
+            self.round()
+            nr_waiting_patients.append(self.state[6])
+        print(nr_waiting_patients)
+        print("mean number of persons waiting: "+str(mean(nr_waiting_patients)))
+
 
 if __name__ == "__main__":
-    BM = BasicModel()
-    for _ in range(1000):
-        BM.round()
+    BM = BasicModel(0.5)
+    BM.run(1000)
