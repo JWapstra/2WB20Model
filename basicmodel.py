@@ -1,9 +1,10 @@
 from collections import deque
-from random import random
-
-# A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
+from random import random, seed
 from numpy import mean
 
+seed(10)
+
+# A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
 
 class BasicModel:
     def __init__(self, prob_to_doc):
@@ -96,7 +97,6 @@ class BasicModel:
                 li[5] += 1
             else:
                 li[4] += 1
-        #li[3] = 0
         
         # A1 or A2 moves to A3
         li[3] = li[2]
@@ -107,7 +107,6 @@ class BasicModel:
                 li[3] += 1
             else:
                 li[2] += 1
-        #li[1] = 0
         
         # A0 moves to A1
         li[1] = li[0]
@@ -124,8 +123,6 @@ class BasicModel:
             self.state[0] = self.state[0] + 1
         elif self.prob_1 < r <= self.prob_1 + self.prob_2:
             self.state[0] = self.state[0] + 2
-        else:
-            pass
 
     def round(self):
         self.state = self.moveOPeople(self.state)
