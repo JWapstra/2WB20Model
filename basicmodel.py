@@ -9,7 +9,7 @@ seed(10)
 class BasicModel:
     def __init__(self, prob_to_doc):
         self.state = [0 for i in range(0,22)]
-        self.NOPTS = 3 # number of optomologists
+        self.NOPTS = 2 # number of optomologists
 
         #Visitor probabilities 
         self.prob_1 = 0.3  #probability that 1 person enters building
