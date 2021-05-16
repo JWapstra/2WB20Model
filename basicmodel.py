@@ -173,8 +173,8 @@ class BasicModel:
             self.state[removedPersonIndex] -= 1
             # add removed person to waiting room
             self.state[self.W1] += 1
+            self.EMERGENCY = True
         
-        self.EMERGENCY = True
         # add emergency to O1
         self.state[self.W1 + 1] += 1
         
