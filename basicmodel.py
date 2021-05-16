@@ -22,7 +22,7 @@ class BasicModel:
         self.prob_skipsA4 = 0.5
         self.prob_skipsO2n = 0.5
 
-        # Number of emergencies
+        # Emergency state
         self.EMERGENCY = False
         # Initialise the removed persons list
         self.removedPersonIndices = []
