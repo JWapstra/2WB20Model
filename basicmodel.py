@@ -1,7 +1,6 @@
 from collections import deque
 from random import random, seed
 from numpy import mean
-from time import sleep
 
 seed(10)
 
