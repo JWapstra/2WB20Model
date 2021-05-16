@@ -183,7 +183,7 @@ class BasicModel:
         """
         This function together with 'addEmergency' handle everything related to emergencies
         """
-        if self.EMERGENCY and self.peopleAtOphthalmologist() <=self.NOPTS -1 : # this means that the emergency just finished, since there is a free spot now
+        if self.EMERGENCY and self.peopleAtOphthalmologist() <=self.NOPTS -1 : # this means that the emergency possibly just finished, since there is a free spot now
             removedPersonIndex = self.removedPersonIndices.pop(0)
             self.state[removedPersonIndex] += 1
 
