@@ -1,6 +1,7 @@
 from collections import deque
 from random import random, seed
 from numpy import mean
+from time import sleep
 
 seed(10)
 
@@ -9,6 +10,7 @@ seed(10)
 class BasicModel:
     def __init__(self, prob_to_doc):
         self.state = [0 for i in range(0,22)]
+        self.W1 = 6
         self.NOPTS = 2 # number of optomologists
 
         #Visitor probabilities 
@@ -20,9 +22,17 @@ class BasicModel:
         self.prob_skipsA2 = 0.5
         self.prob_skipsA4 = 0.5
         self.prob_skipsO2n = 0.5
+
+        # Number of emergencies
+        self.EMERGENCY = False
+        # Initialise the removed persons list
+        self.removedPersonIndices = []
     
     def reset_state(self):
         self.state = [0 for i in range(0,22)]
+
+    def peopleAtOphthalmologist(self):
+            return sum(self.state[self.W1 + 1 : -1])
     
     def skipO2n(self, li: list, fromIndex):
         """
@@ -135,10 +145,70 @@ class BasicModel:
         elif self.prob_1 < r <= self.prob_1 + self.prob_2:
             self.state[0] = self.state[0] + 2
 
+    def addEmergency(self):
+        """
+        What happens during emergency:
+        1. Emergency comes into clinic and is immediately placed with an ophthalmologist
+        2. This means one person now has to wait for the ophthalmologist to return from the emergency case
+        3. We will remove that person from the ophthalmologist and put him in the waiting room.
+        4. When the emergency is over, we put him back where he/she originally was.
+
+        What happened before this function was called:
+        1. A probability was computed and with 0.02 probability an emergency occurs. In that case, this function is called.
+        """
+
+        # Are there any free ophthalmologists
+        if self.peopleAtOphthalmologist() <= self.NOPTS -1:
+            pass
+        else: # there are no free ophthalmologists
+            # Detect where person in front is
+            i = -2
+            while True :
+                if self.state[i] != 0:
+                    removedPersonIndex = i
+                    self.removedPersonIndices.append(removedPersonIndex)
+                    break
+                i -= 1
+        
+            # remove person from ophthalmologist
+            self.state[removedPersonIndex] -= 1
+            # add removed person to waiting room
+            self.state[self.W1] += 1
+            self.EMERGENCY = True
+        
+        # add emergency to O1
+        self.state[self.W1 + 1] += 1
+        
+
+    def handleEmergency(self):
+        """
+        This function together with 'addEmergency' handle everything related to emergencies
+        """
+        if self.EMERGENCY and self.peopleAtOphthalmologist() <=self.NOPTS -1 : # this means that the emergency just finished, since there is a free spot now
+            removedPersonIndex = self.removedPersonIndices.pop(0)
+            self.state[removedPersonIndex] += 1
+
+            # If the removed people list is empty, then apparently there is no more emergency, so set emergency attribute to false
+            if not self.removedPersonIndices:
+                self.EMERGENCY = False
+        elif self.EMERGENCY and self.peopleAtOphthalmologist() == 2: # There is still an unfinished emergency case
+            pass
+        
+
+        # Possibly generate a new emergency with probability self.prob_emergency
+        if random() <= self.prob_emergency:
+            self.addEmergency()
+            print("\nemergency!")
+            print(self.state)
+            print(f"REMOVED PEOPLE: {self.removedPersonIndices}\n")
+
+
     def round(self):
         """
         5 minutes pass
         """
+        
+        self.handleEmergency()
         self.state = self.moveOPeople(self.state)
         self.state = self.moveAPeople(self.state)
         self.visitor()
@@ -158,4 +228,4 @@ class BasicModel:
 
 if __name__ == "__main__":
     BM = BasicModel(0.5)
-    BM.run(10000)
+    BM.run(100)
