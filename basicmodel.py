@@ -2,7 +2,7 @@ from collections import deque
 from random import random, seed
 from numpy import mean
 
-seed(10)
+# seed(10)
 
 # A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
 
@@ -24,6 +24,7 @@ class BasicModel:
 
         # Emergency state
         self.EMERGENCY = False
+        self.nr_emergencies = 0
         # Initialise the removed persons list
         self.removedPersonIndices = []
     
@@ -202,12 +203,20 @@ class BasicModel:
             print(f"REMOVED PEOPLE: {self.removedPersonIndices}\n")
 
 
+    def check_emergency(self):
+
+        if random() <= self.prob_emergency:
+            print("emergency")
+            self.state[self.W1] += 1
+            self.nr_emergencies += 1
+
+
     def round(self):
         """
         5 minutes pass
         """
         
-        self.handleEmergency()
+        self.check_emergency()
         self.state = self.moveOPeople(self.state)
         self.state = self.moveAPeople(self.state)
         self.visitor()
@@ -223,6 +232,7 @@ class BasicModel:
             nr_waiting_patients.append(self.state[6])
         # print(nr_waiting_patients)
         print("mean number of people waiting: "+str(mean(nr_waiting_patients)))
+        print("number of emergencies: "+str(self.nr_emergencies))
 
 
 if __name__ == "__main__":
