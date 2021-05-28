@@ -244,6 +244,7 @@ class BasicModel:
         numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
         throughput = self.state[-1] / (t_max * 5 * numberOfPeopleInWaitingRoomMean + 1)
 
+        print("------- last simulation summary -------")
         print(f"Throughput: {throughput}" )
         print(f"mean number of people waiting: {numberOfPeopleInWaitingRoomMean}")
         print(f"number of emergencies: {self.nr_emergencies}")
@@ -274,4 +275,4 @@ def manySimulations(numberOfSimulations: int):
 
 
 if __name__ == "__main__":
-    manySimulations(numberOfSimulations=10000)
+    manySimulations(numberOfSimulations=1000)
