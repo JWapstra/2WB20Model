@@ -251,6 +251,7 @@ class BasicModel:
         #Reset variables for next run
         self.reset_state()
         self.schedule = []
+        self.nr_emergencies = 0
 
         return(self.schedule, throughput)
 
@@ -267,6 +268,7 @@ def manySimulations(numberOfSimulations: int):
         if throughput > max_throughput:
             best_schedule = schedule
             max_throughput = throughput
+    print("\n--------------- Result -----------------")
     print(f"The best found schedule is {best_schedule}")
     print(f"Gave highest throughput: {max_throughput}")
 
