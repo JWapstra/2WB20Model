@@ -7,8 +7,9 @@ from numpy import mean
 # A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
 
 class BasicModel:
-    def __init__(self, prob_to_doc):
+    def __init__(self, prob_to_doc = 0.5):
         self.state = [0 for i in range(0,22)]
+        self.schedule = []
         self.W1 = 6
         self.NOPTS = 2 # number of optomologists
 
@@ -107,7 +108,7 @@ class BasicModel:
             if to_doc:
                 li[6] += 1
             else:
-                li[-1] += 1
+                li[-1] += 1 # here they go home already
 
         # A3 or A4 moves to A5
         li[5] = li[4]
@@ -141,9 +142,17 @@ class BasicModel:
         r = random()
         if 0 < r <= self.prob_1:
             # Add one person 
-            self.state[0] = self.state[0] + 1
+            peopleToAdd = 1
+
+            self.state[0] = self.state[0] + peopleToAdd
+            self.schedule.append(peopleToAdd)
         elif self.prob_1 < r <= self.prob_1 + self.prob_2:
-            self.state[0] = self.state[0] + 2
+            peopleToAdd = 2
+
+            self.state[0] = self.state[0] + peopleToAdd
+            self.schedule.append(peopleToAdd)
+        else: 
+            self.schedule.append(0)
 
     def addEmergency(self):
         """
@@ -224,17 +233,43 @@ class BasicModel:
 
     def run(self, t_max):
         """
-        Run a simulation
+        Run one simulation
         """
         nr_waiting_patients = deque()
         for t in range(t_max):
             self.round()
             nr_waiting_patients.append(self.state[6])
         # print(nr_waiting_patients)
-        print("mean number of people waiting: "+str(mean(nr_waiting_patients)))
-        print("number of emergencies: "+str(self.nr_emergencies))
+
+        numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
+        throughput = self.state[-1] / (t_max * 5 * numberOfPeopleInWaitingRoomMean + 1)
+
+        print(f"Throughput: {throughput}" )
+        print(f"mean number of people waiting: {numberOfPeopleInWaitingRoomMean}")
+        print(f"number of emergencies: {self.nr_emergencies}")
+
+        #Reset variables for next run
+        self.reset_state()
+        self.schedule = []
+
+        return(self.schedule, throughput)
+
+
+def manySimulations(numberOfSimulations: int):
+    BM = BasicModel()
+
+    # Initialise variables that return the best result
+    max_throughput = 0
+    best_schedule = []
+
+    for _ in range(numberOfSimulations):
+        schedule, throughput =  BM.run(100)
+        if throughput > max_throughput:
+            best_schedule = schedule
+            max_throughput = throughput
+    print(f"The best found schedule is {best_schedule}")
+    print(f"Gave highest throughput: {max_throughput}")
 
 
 if __name__ == "__main__":
-    BM = BasicModel(0.5)
-    BM.run(100)
+    manySimulations(numberOfSimulations=10000)
