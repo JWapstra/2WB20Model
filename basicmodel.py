@@ -229,7 +229,7 @@ class BasicModel:
         self.state = self.moveOPeople(self.state)
         self.state = self.moveAPeople(self.state)
         self.visitor()
-        print(self.state)
+        #print(self.state)
 
     def run(self, t_max):
         """
@@ -248,6 +248,7 @@ class BasicModel:
         print(f"Throughput: {throughput}" )
         print(f"mean number of people waiting: {numberOfPeopleInWaitingRoomMean}")
         print(f"number of emergencies: {self.nr_emergencies}")
+        print()
 
         #Reset variables for next run
         self.reset_state()
