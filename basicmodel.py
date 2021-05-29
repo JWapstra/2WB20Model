@@ -1,6 +1,7 @@
 from collections import deque
 from random import random, seed
 from numpy import mean
+import matplotlib.pyplot as plt
 
 # seed(10)
 
@@ -215,7 +216,7 @@ class BasicModel:
     def check_emergency(self):
 
         if random() <= self.prob_emergency:
-            print("emergency")
+            #print("emergency")
             self.state[self.W1] += 1
             self.nr_emergencies += 1
 
@@ -244,11 +245,11 @@ class BasicModel:
         numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
         throughput = self.state[-1] / (t_max * 5 * numberOfPeopleInWaitingRoomMean + 1)
 
-        print("------- last simulation summary -------")
-        print(f"Throughput: {throughput}" )
-        print(f"mean number of people waiting: {numberOfPeopleInWaitingRoomMean}")
-        print(f"number of emergencies: {self.nr_emergencies}")
-        print()
+        #print("------- last simulation summary -------")
+        #print(f"Throughput: {throughput}" )
+        #print(f"mean number of people waiting: {numberOfPeopleInWaitingRoomMean}")
+        #print(f"number of emergencies: {self.nr_emergencies}")
+        #print()
 
         #Reset variables for next run
         self.reset_state()
@@ -275,5 +276,65 @@ def manySimulations(numberOfSimulations: int):
     print(f"Gave highest throughput: {max_throughput}")
 
 
+def plotThroughput(numberOfSimulations: int = 1000):
+    BM = BasicModel()
+
+    # Set the figure size in inches
+    plt.figure(figsize=(10,6))
+
+    x = []
+    y = []
+    
+    for i in range(numberOfSimulations):
+        schedule, throughput =  BM.run(100)
+        x.append(i)
+        y.append(throughput)
+    
+    plt.scatter(x, y, label = "(i,throughput)")
+
+    # Set x and y axes labels
+    plt.xlabel('i (i-th simulation)')
+    plt.ylabel('Throughput for simulation i')
+
+    plt.title('Throughput shown for all simulations')
+    plt.legend()
+    plt.show()
+
+def plotOptimalThroughput(numberOfSimulations: int = 1000):
+    BM = BasicModel()
+
+    # Set the figure size in inches
+    plt.figure(figsize=(10,6))
+
+    x = []
+    y = []
+    best_schedule, best_throughput = [], 0
+    
+    for i in range(numberOfSimulations):
+        schedule, throughput =  BM.run(100)
+        if throughput > best_throughput:
+            best_schedule = schedule
+            best_throughput = throughput
+        x.append(i)
+        y.append(best_throughput)
+    
+    print("\n--------------- Result -----------------")
+    print(f"The best found schedule is {best_schedule}")
+    print(f"Gave highest throughput: {best_throughput}")
+
+    plt.plot(x,y)
+    # Set x and y axes labels
+    plt.xlabel('i-t simulation')
+    plt.ylabel('Best throughput found')
+
+    plt.title('Best throughputs')
+    plt.legend()
+    plt.show()
+
 if __name__ == "__main__":
-    manySimulations(numberOfSimulations=1000)
+    #manySimulations(numberOfSimulations=10000)
+    
+    plotThroughput(1000)
+
+    # note that this gives a plot with different simulations than the one from above
+    plotOptimalThroughput(1000)
