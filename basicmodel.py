@@ -8,9 +8,12 @@ import matplotlib.pyplot as plt
 # A0,A1,A2,A3,A4,A5,W1,O0,O1, ... ,O10, O11, H
 
 class BasicModel:
-    def __init__(self, prob_to_doc = 0.5):
+    def __init__(self, 
+                prob_to_doc = 0.5,
+                schedule : list = []):
         self.state = [0 for i in range(0,22)]
-        self.schedule = []
+        self.time = 0
+        self.schedule = schedule
         self.W1 = 6
         self.NOPTS = 2 # number of optomologists
 
@@ -32,6 +35,9 @@ class BasicModel:
     
     def reset_state(self):
         self.state = [0 for i in range(0,22)]
+    
+    def reset_schedule(self):
+        self.schedule = []
 
     def peopleAtOphthalmologist(self):
             return sum(self.state[self.W1 + 1 : -1])
@@ -140,6 +146,11 @@ class BasicModel:
         return li
 
     def visitor(self):
+        if len(self.schedule) == self.t_max:
+            self.state[0] += self.schedule[self.time]
+            return
+
+
         r = random()
         if 0 < r <= self.prob_1:
             # Add one person 
@@ -230,12 +241,22 @@ class BasicModel:
         self.state = self.moveOPeople(self.state)
         self.state = self.moveAPeople(self.state)
         self.visitor()
+        self.time += 1
         #print(self.state)
 
     def run(self, t_max):
         """
         Run one simulation
         """
+        #Reset variables for next run
+        self.reset_state()
+        self.nr_emergencies = 0
+        self.t_max = t_max
+
+        if (len(self.schedule) != t_max) and (len(self.schedule) != 0):
+            print("Schedule does not match number of timesteps for this simulation.")
+            self.reset_schedule()
+
         nr_waiting_patients = deque()
         for t in range(t_max):
             self.round()
@@ -251,12 +272,10 @@ class BasicModel:
         #print(f"number of emergencies: {self.nr_emergencies}")
         #print()
 
-        #Reset variables for next run
-        self.reset_state()
-        self.schedule = []
-        self.nr_emergencies = 0
+        result = self.schedule, throughput
+        self.reset_schedule()
 
-        return(self.schedule, throughput)
+        return(result)
 
 
 def manySimulations(numberOfSimulations: int):
@@ -331,10 +350,21 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
     plt.legend()
     plt.show()
 
+def exampleWithGivenSchedule():
+    schedule = schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
+    BM = BasicModel(schedule = schedule)
+    schedule, throughput = BM.run(t_max= 100)
+    print("\n--------------- Result -----------------")
+    print(f"Schedule: {schedule}")
+    print(f"Throughput: {throughput}")
+    
+
 if __name__ == "__main__":
     #manySimulations(numberOfSimulations=10000)
     
-    plotThroughput(1000)
+    #plotThroughput(1000)
 
     # note that this gives a plot with different simulations than the one from above
-    plotOptimalThroughput(1000)
+    #plotOptimalThroughput(1000)
+
+    exampleWithGivenSchedule()
