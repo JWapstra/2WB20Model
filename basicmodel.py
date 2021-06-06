@@ -13,9 +13,11 @@ from scipy import stats
 
 
 class BasicModel:
-    def __init__(self, prob_to_doc=0.5, prob_emergency=0.02, mean_doc_arr_time=1):
+    def __init__(self, prob_to_doc=0.5, prob_emergency=0.02, mean_doc_arr_time=1, schedule=[]):
         self.state = [0 for i in range(0, 22)]
-        self.schedule = []
+        self.schedule = schedule
+        self.t_max = 100
+        self.time = 0
         self.W1 = 6
         self.NOPTS = 2 # number of optomologists
         self.distribution = stats.geom(1/mean_doc_arr_time)
@@ -146,20 +148,20 @@ class BasicModel:
         return li
 
     def visitor(self):
-        r = random()
-        if 0 < r <= self.prob_1:
-            # Add one person 
-            peopleToAdd = 1
+        if len(self.schedule)>0 and self.time <= self.t_max:
+            peopleToAdd = self.schedule[self.time]
+        else:
+            r = random()
+            if 0 < r <= self.prob_1:
+                # Add one person
+                peopleToAdd = 1
 
-            self.state[0] = self.state[0] + peopleToAdd
-            self.schedule.append(peopleToAdd)
-        elif self.prob_1 < r <= self.prob_1 + self.prob_2:
-            peopleToAdd = 2
+            elif self.prob_1 < r <= self.prob_1 + self.prob_2:
+                peopleToAdd = 2
+            else:
+                peopleToAdd = 0
+        self.state[0] = self.state[0] + peopleToAdd
 
-            self.state[0] = self.state[0] + peopleToAdd
-            self.schedule.append(peopleToAdd)
-        else: 
-            self.schedule.append(0)
 
     def addEmergency(self):
         """
@@ -244,23 +246,25 @@ class BasicModel:
         """
         # Reset variables for next run
         self.reset_state()
-        self.schedule = []
         self.nr_emergencies = 0
         self.NOPTS = 1
         nr_waiting_patients = deque()
         arr_time = self.distribution.rvs()
 
         for t in range(t_max):
+            self.time = t
             if t == arr_time:
                 self.NOPTS += 1
             self.round()
             nr_waiting_patients.append(self.state[6])
         # print(nr_waiting_patients)
+
         max_wait = max(nr_waiting_patients)
         mean_wait = mean(nr_waiting_patients)
         throughput = self.state[-1] / (t_max * 5 * mean_wait + 1)
 
         wait_counter = Counter(nr_waiting_patients)
+
         print("------- last simulation summary -------")
         print(f"Throughput: {throughput}" )
         print(f"mean number of people waiting: {mean_wait}")
@@ -322,7 +326,8 @@ def manySimulations(numberOfSimulations: int):
 
 
 def plot_results(t_max, nr_runs):
-    model = BasicModel(0.5)
+    schedule = 75*[0]+25*[2]
+    model = BasicModel(0.5, 0, schedule=schedule)
     means, halfwidth, average = model.run_multiple(t_max, nr_runs)
     plt.figure()
     labels = arange(len(means))
@@ -331,8 +336,10 @@ def plot_results(t_max, nr_runs):
 
 
 def plot_multiple(t_max, nr_runs):
-    model1 = BasicModel(0.5, 0)
-    model2 = BasicModel(0.5, 0.02)
+    schedule1 = [2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 1, 1, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1]
+    schedule2 = 50*[1,0]
+    model1 = BasicModel(0.5, 0.02)
+    model2 = BasicModel(0.5, 0.02, 5)
     model3 = BasicModel(0.5, 0.02, 10)
     y1, dy1, E_y1 = model1.run_multiple(t_max, nr_runs)
     y2, dy2, E_y2 = model2.run_multiple(t_max, nr_runs)
