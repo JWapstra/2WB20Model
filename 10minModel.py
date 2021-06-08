@@ -12,7 +12,7 @@ from scipy import stats
 
 
 class BasicModel:
-    def __init__(self, prob_to_doc=0.5, prob_emergency=0.02, mean_doc_arr_time=1, schedule=[]):
+    def __init__(self, prob_to_doc=0.5, prob_emergency=0.04, mean_doc_arr_time=1, schedule=[]):
         self.state = [0 for i in range(0, 11)]
         self.schedule = schedule
         self.t_max = 50
@@ -22,8 +22,8 @@ class BasicModel:
         self.distribution = stats.geom(1/mean_doc_arr_time)
 
         # Visitor probabilities
-        self.prob_1 = 0.3  # probability that 1 person enters building
-        self.prob_2 = 0.1  # probability that 2 people enters building
+        self.prob_1 = 0.5  # probability that 1 person enters building
+        self.prob_2 = 0.2  # probability that 2 people enters building
         self.prob_emergency = prob_emergency  # probability of having a emergency
         # the probability that somebody has to go to the doctor after visiting one of the assistents
         self.prob_to_doc = prob_to_doc
@@ -62,7 +62,7 @@ class BasicModel:
         li[10] += li[9]
         li[9] = 0
 
-        li[9] += li[8]
+        li = self.skipO2n(li, 8)
         li[8] = 0
 
         li[8] += li[7]
