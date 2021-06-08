@@ -18,12 +18,16 @@ class BasicModel:
         self.NOPTS = 2 # number of optomologists
 
         #Visitor probabilities 
-        self.prob_1 = 0.3  #probability that 1 person enters building
-        self.prob_2 = 0.1  #probability that 2 people enters building
-        self.prob_emergency = 0.02 #1/50
+        self.prob_1 = 0.5  #probability that 1 person enters building , 0.5
+        self.prob_2 = 0.2  #probability that 2 people enters building , 0.2
+        self.prob_3 = 0.1
+        
+        #self.prob_emergency = 0.02 #1/50
+        self.prob_emergency = 0.04 #1/25
+
         self.prob_to_doc = prob_to_doc # the probability that somebody has to go to the doctor after visiting one of the assistents
 
-        self.prob_skipsA2 = 0.5
+        self.prob_skipsA2 = 1
         self.prob_skipsA4 = 0.5
         self.prob_skipsO2n = 0.5
 
@@ -163,7 +167,15 @@ class BasicModel:
 
             self.state[0] = self.state[0] + peopleToAdd
             self.schedule.append(peopleToAdd)
-        else: 
+        # elif self.prob_1 + self.prob_2 < r <= self.prob_1 + self.prob_2 + self.prob_3:
+        #     peopleToAdd = 3
+        #     self.state[0] =  self.state[0] + peopleToAdd
+        #     self.schedule.append(peopleToAdd)
+        # elif self.prob_1 + self.prob_2 + self.prob_3 < r <= self.prob_1 + self.prob_2 + self.prob_3 + self.prob_4:
+        #     peopleToAdd = 4
+        #     self.state[0] =  self.state[0] + peopleToAdd
+        #     self.schedule.append(peopleToAdd)
+        else:
             self.schedule.append(0)
 
     def addEmergency(self):
@@ -237,7 +249,7 @@ class BasicModel:
         5 minutes pass
         """
         
-        self.check_emergency()
+        #self.check_emergency()
         self.state = self.moveOPeople(self.state)
         self.state = self.moveAPeople(self.state)
         self.visitor()
@@ -264,7 +276,7 @@ class BasicModel:
         # print(nr_waiting_patients)
 
         numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
-        throughput = self.state[-1] / (t_max * 5 * numberOfPeopleInWaitingRoomMean + 1)
+        throughput = self.state[-1] / (t_max * 10 * numberOfPeopleInWaitingRoomMean + 1)
 
         #print("------- last simulation summary -------")
         #print(f"Throughput: {throughput}" )
@@ -286,7 +298,7 @@ def manySimulations(numberOfSimulations: int):
     best_schedule = []
 
     for _ in range(numberOfSimulations):
-        schedule, throughput =  BM.run(100)
+        schedule, throughput =  BM.run(50)
         if throughput > max_throughput:
             best_schedule = schedule
             max_throughput = throughput
@@ -305,7 +317,7 @@ def plotThroughput(numberOfSimulations: int = 1000):
     y = []
     
     for i in range(numberOfSimulations):
-        schedule, throughput =  BM.run(100)
+        schedule, throughput =  BM.run(50)
         x.append(i)
         y.append(throughput)
     
@@ -330,7 +342,7 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
     best_schedule, best_throughput = [], 0
     
     for i in range(numberOfSimulations):
-        schedule, throughput =  BM.run(100)
+        schedule, throughput =  BM.run(50)
         if throughput > best_throughput:
             best_schedule = schedule
             best_throughput = throughput
@@ -353,7 +365,7 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
 def exampleWithGivenSchedule():
     schedule = schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
     BM = BasicModel(schedule = schedule)
-    schedule, throughput = BM.run(t_max= 100)
+    schedule, throughput = BM.run(t_max= 50)
     print("\n--------------- Result -----------------")
     print(f"Schedule: {schedule}")
     print(f"Throughput: {throughput}")
@@ -365,6 +377,6 @@ if __name__ == "__main__":
     #plotThroughput(1000)
 
     # note that this gives a plot with different simulations than the one from above
-    #plotOptimalThroughput(1000)
+    plotOptimalThroughput(10000)
 
-    exampleWithGivenSchedule()
+    #exampleWithGivenSchedule()
