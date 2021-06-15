@@ -341,14 +341,24 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
     y = []
     best_schedule, best_throughput = [], 0
     
+    sumi = 0
+    sum_list = []
+
     for i in range(numberOfSimulations):
         schedule, throughput =  BM.run(50)
         if throughput > best_throughput:
             best_schedule = schedule
             best_throughput = throughput
+        if throughput > 0.13:
+            print(schedule)
+            sumi += 1
+            sum_list.append(sum(schedule))
+        
+
         x.append(i)
         y.append(best_throughput)
     
+    print(f"Average number of people through system of high troughput schedules is: {sum(sum_list)/sumi} ")
     print("\n--------------- Result -----------------")
     print(f"The best found schedule is {best_schedule}")
     print(f"Gave highest throughput: {best_throughput}")
@@ -362,6 +372,7 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
     plt.legend()
     plt.show()
 
+
 def exampleWithGivenSchedule():
     schedule = schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
     BM = BasicModel(schedule = schedule)
@@ -374,9 +385,9 @@ def exampleWithGivenSchedule():
 if __name__ == "__main__":
     #manySimulations(numberOfSimulations=10000)
     
-    #plotThroughput(1000)
+    plotThroughput(10000)
 
     # note that this gives a plot with different simulations than the one from above
-    plotOptimalThroughput(10000)
+    plotOptimalThroughput(100000)
 
     #exampleWithGivenSchedule()
