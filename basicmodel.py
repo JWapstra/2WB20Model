@@ -277,7 +277,7 @@ class BasicModel:
         # print(nr_waiting_patients)
 
         numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
-        throughput = self.state[-1] / (t_max * 10 * numberOfPeopleInWaitingRoomMean + 1)
+        throughput = self.state[-1] / (t_max * 10 * numberOfPeopleInWaitingRoomMean +1 )
 
         #print("------- last simulation summary -------")
         #print(f"Throughput: {throughput}" )
@@ -377,18 +377,20 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
 def exampleWithGivenSchedule(s):
     #schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
     schedule = s
-    BM = BasicModel(schedule = schedule)
+    
 
-    its = 1000
+    its = 10000
     sum_throughput = 0
     for _ in range(its):
-        schedule, throughput = BM.run(t_max= 56)
+        BM = BasicModel(schedule = schedule)
+        ret_schedule, throughput = BM.run(t_max= 56)
         sum_throughput += throughput
     average_throughput = sum_throughput/its
 
-    print("\n--------------- Result -----------------")
-    print(f"Schedule: {schedule}")
-    print(f"Throughput: {average_throughput}")
+    #print("\n--------------- Result -----------------")
+    #print(f"Schedule: {ret_schedule}")
+    #print(f"Throughput: {average_throughput}")
+    print(f"{average_throughput}")
     
 
 if __name__ == "__main__":
