@@ -11,10 +11,10 @@ class BasicModel:
     def __init__(self, 
                 prob_to_doc = 0.5,
                 schedule : list = []):
-        self.state = [0 for i in range(0,22)]
+        self.state = [0 for i in range(0,11)]
         self.time = 0
         self.schedule = schedule
-        self.W1 = 6
+        self.W1 = 3 # index of the waiting room
         self.NOPTS = 2 # number of optomologists
 
         #Visitor probabilities 
@@ -38,7 +38,7 @@ class BasicModel:
         self.removedPersonIndices = []
     
     def reset_state(self):
-        self.state = [0 for i in range(0,22)]
+        self.state = [0 for i in range(0,11)]
     
     def reset_schedule(self):
         self.schedule = []
@@ -64,43 +64,44 @@ class BasicModel:
         """
         Determines what happens to the people who are at the optomologist when 5 minutes pass.
         """
-        busyOpts = sum(li[7:-2])
+        busyOpts = sum(li[self.W1+1:-2])
         freeOpts = self.NOPTS - busyOpts
 
-        li[21] += li[20]
-        li[20] = 0
-        li = self.skipO2n(li, 19)
+        # li[21] += li[20]
+        # li[20] = 0
+        # li = self.skipO2n(li, 19)
 
-        li[19] = li[18]
-        li[18] = 0
-        li = self.skipO2n(li, 17)
+        # li[19] = li[18]
+        # li[18] = 0
+        # li = self.skipO2n(li, 17)
 
-        li[17] = li[16]
-        li[16] = 0
-        li = self.skipO2n(li, 15)
+        # li[17] = li[16]
+        # li[16] = 0
+        # li = self.skipO2n(li, 15)
 
-        li[15] = li[14]
-        li[14] = 0
-        li = self.skipO2n(li, 13)
+        # li[15] = li[14]
+        # li[14] = 0
+        # li = self.skipO2n(li, 13)
 
-        li[13] = li[12]
-        li[12] = 0
-        li = self.skipO2n(li, 11)
 
-        li[11] = li[10]
-        li[10] = 0
-        li = self.skipO2n(li, 9)
+        li[10] += li[9]
+        li[9] = 0
+        li = self.skipO2n(li, 8)
 
-        li[9] = li[8]
-        li[8] = 0
-        li = self.skipO2n(li, 7)
+        li[8] = li[7]
         li[7] = 0
+        li = self.skipO2n(li, 6)
+
+        li[6] = li[5]
+        li[5] = 0
+        li = self.skipO2n(li, 4)
+        li[4] = 0
 
 
         # # Add the number of free optomologists to O1
-        toAdd = min(freeOpts, li[6])
-        li[7] += toAdd
-        li[6] -= toAdd
+        toAdd = min(freeOpts, li[self.W1])
+        li[4] += toAdd
+        li[3] -= toAdd
 
         return li
 
@@ -113,36 +114,36 @@ class BasicModel:
         The queue starts moving at the front (aka A5 moves first)
         """
 
-        # A5 moves to W1 or H
-        for _ in range(li[5]):
+        # A2 moves to W1 or H
+        for _ in range(li[2]):
             to_doc = random() < self.prob_to_doc
             if to_doc:
-                li[6] += 1
+                li[3] += 1
             else:
                 li[-1] += 1 # here they go home already
 
-        # A3 or A4 moves to A5
-        li[5] = li[4]
-        li[4] = 0
-        for _ in range(li[3]):
-            skipA4 = random() < self.prob_skipsA4
-            if skipA4:
-                li[5] += 1
-            else:
-                li[4] += 1
+        # # A3 or A4 moves to A5
+        # li[5] = li[4]
+        # li[4] = 0
+        # for _ in range(li[3]):
+        #     skipA4 = random() < self.prob_skipsA4
+        #     if skipA4:
+        #         li[5] += 1
+        #     else:
+        #         li[4] += 1
         
-        # A1 or A2 moves to A3
-        li[3] = li[2]
-        li[2] = 0
-        for _ in range(li[1]):
+        # # A1 or A2 moves to A3
+        li[2] = li[1]
+        li[1] = 0
+        for _ in range(li[0]):
             skipA2 = random() < self.prob_skipsA2
             if skipA2:
-                li[3] += 1
-            else:
                 li[2] += 1
+            else:
+                li[1] += 1
         
-        # A0 moves to A1
-        li[1] = li[0]
+        # # A0 moves to A1
+        # li[1] = li[0]
 
         # A0 = 0
         li[0] = 0
@@ -272,7 +273,7 @@ class BasicModel:
         nr_waiting_patients = deque()
         for t in range(t_max):
             self.round()
-            nr_waiting_patients.append(self.state[6])
+            nr_waiting_patients.append(self.state[self.W1])
         # print(nr_waiting_patients)
 
         numberOfPeopleInWaitingRoomMean = mean(nr_waiting_patients)
@@ -373,21 +374,51 @@ def plotOptimalThroughput(numberOfSimulations: int = 1000):
     plt.show()
 
 
-def exampleWithGivenSchedule():
-    schedule = schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
+def exampleWithGivenSchedule(s):
+    #schedule = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0]
+    schedule = s
     BM = BasicModel(schedule = schedule)
-    schedule, throughput = BM.run(t_max= 50)
+
+    its = 1000
+    sum_throughput = 0
+    for _ in range(its):
+        schedule, throughput = BM.run(t_max= 56)
+        sum_throughput += throughput
+    average_throughput = sum_throughput/its
+
     print("\n--------------- Result -----------------")
     print(f"Schedule: {schedule}")
-    print(f"Throughput: {throughput}")
+    print(f"Throughput: {average_throughput}")
     
 
 if __name__ == "__main__":
     #manySimulations(numberOfSimulations=10000)
     
-    plotThroughput(10000)
+    #plotThroughput(10000)
 
     # note that this gives a plot with different simulations than the one from above
-    plotOptimalThroughput(100000)
+    #plotOptimalThroughput(100000)
 
-    #exampleWithGivenSchedule()
+    schedules = [[1, 1, 0, 0, 2, 0, 1, 1, 1, 0, 1, 0, 0, 1, 2, 1, 0, 2, 1, 0, 2, 1, 1, 1, 0, 0, 1, 2, 0, 1, 1, 1, 2, 1, 1, 0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 2, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 2, 1, 2, 0, 0, 1, 1, 2, 1, 2, 1, 1, 0, 0, 0, 2, 1, 2, 0, 1, 2, 0, 2, 0, 0, 0, 0, 0, 0],
+[1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 2, 1, 2, 2, 1, 1, 0, 0, 1, 0, 2, 0, 1, 1, 1, 0, 0, 0, 0, 1, 2, 0, 1, 1, 1, 2, 1, 2, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+[0, 1, 0, 2, 2, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 2, 1, 2, 0, 0, 2, 0, 1, 1, 1, 0, 1, 0, 0, 1, 2, 0, 0, 1, 1, 2, 2, 1, 0, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0],
+[1, 1, 1, 1, 2, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 2, 0, 1, 0, 0, 1, 1, 2, 1, 2, 1, 1, 0, 0, 1, 0, 2, 2, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0],
+[1, 1, 1, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 2, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 2, 0, 0, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 2, 2, 1, 0, 0, 1, 0, 0, 0, 0, 2, 1, 1, 1, 1, 0, 2, 1, 0, 2, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 2, 2, 0, 1, 1, 1, 2, 0, 1, 2, 0, 0, 0, 0, 0, 0],
+[1, 1, 2, 1, 1, 2, 2, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 0, 0, 2, 0, 1, 0, 0, 1, 1, 1, 1, 2, 1, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 2, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 2, 1, 0, 1, 1, 1, 2, 0, 0, 2, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 2, 0, 0, 1, 1, 0, 1, 0, 2, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 2, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1, 0, 1, 0, 1, 0, 1, 2, 1, 1, 0, 1, 1, 2, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+[2, 1, 1, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 2, 1, 1, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+[0, 1, 1, 1, 2, 0, 1, 2, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 0, 1, 2, 0, 0, 1, 2, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+[1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 1, 0, 1, 1, 1, 1, 2, 0, 0, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 2, 1, 2, 2, 0, 0, 0, 0, 0, 0],
+[1, 1, 1, 1, 2, 0, 2, 0, 1, 0, 0, 1, 0, 0, 1, 2, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 2, 1, 2, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+[2, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 2, 1, 2, 0, 1, 0, 1, 1, 0, 2, 1, 1, 0, 1, 0, 2, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0],
+[0, 1, 1, 1, 1, 0, 0, 2, 0, 1, 0, 1, 0, 2, 2, 1, 0, 2, 1, 0, 2, 0, 0, 0, 2, 2, 0, 1, 1, 1, 2, 2, 0, 1, 0, 1, 1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 1, 1, 2, 0, 0, 2, 0, 1, 1, 1, 0, 0, 0, 1, 0, 2, 0, 1, 2, 1, 0, 2, 0, 1, 0, 0, 1, 1, 0, 0, 2, 1, 2, 1, 0, 1, 1, 0, 1, 0, 2, 0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+[0, 0, 1, 1, 1, 0, 2, 1, 1, 2, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 2, 2, 1, 0, 1, 0, 1, 0, 2, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 2, 0, 2, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 2, 0, 1, 1, 0, 1, 1, 2, 1, 0, 0, 1, 0, 1, 0, 1, 0, 2, 1, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+[0, 0, 1, 0, 1, 0, 2, 0, 0, 2, 2, 1, 1, 2, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 2, 0, 1, 2, 0, 2, 0, 0, 0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0]]
+
+    for s in schedules:
+        exampleWithGivenSchedule(s)
